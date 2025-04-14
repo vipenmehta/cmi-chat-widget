@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMI Hotel 1935 Chat Assistant</title>
+  <style>
+    #chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 340px;
+      background: #fff;
+      border: 2px solid #8e5c2d;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      z-index: 9999;
+    }
+    #chat-header {
+      background-color: #8e5c2d;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #chat-header img {
+      height: 24px;
+    }
+    #chat-body {
+      padding: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .chat-option {
+      background: #f0f0f0;
+      border: none;
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      text-align: left;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .chat-option:hover {
+      background-color: #e0e0e0;
+    }
+    #language-select {
+      margin-top: 10px;
+    }
+    #voice-controls {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .live-chat-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 12px;
+    }
+    .live-chat-buttons a {
+      background-color: #25d366;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .live-chat-buttons a.messenger {
+      background-color: #0084ff;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-widget">
+    <div id="chat-header">
+      <span>CMI Assistant</span>
+      <img src="logo.png" alt="CMI Hotel Logo">
+    </div>
+    <div id="chat-body">
+      <p><strong>Hello! Welcome to CMI Hotel 1935.</strong><br />How can I help you today?</p>
+      <button class="chat-option" onclick="openBooking()">Book a Room</button>
+      <button class="chat-option" onclick="speak('Rooms are available most weekdays. Weekends fill quickly — book soon!')">Check Availability</button>
+      <button class="chat-option" onclick="speak('Check-in is 3 PM, check-out is 11 AM. No pets allowed.')">Hotel Policies</button>
+      <button class="chat-option" onclick="speak('Parking is free for one car. Additional cars are $20/day. Pool is open 8 AM to 10 PM.')">Parking & Pool Info</button>
+      <button class="chat-option" onclick="speak('Let me connect you with someone from our front desk.')">Talk to a Team Member</button>
+
+      <div id="language-select">
+        <label for="lang">Language:</label>
+        <select id="lang" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="hi">हिंदी</option>
+        </select>
+      </div>
+
+      <div id="voice-controls">
+        <button onclick="startListening()">🎙️ Speak Now</button>
+      </div>
+
+      <div class="live-chat-buttons">
+        <a href="https://wa.me/1234567890" target="_blank">WhatsApp</a>
+        <a href="https://m.me/yourhotelpage" class="messenger" target="_blank">Messenger</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const bookingLink = "https://reservation.asiwebres.com/SearchAvailability.aspx?id=93a2ac8f61aa413299a211b167660d85";
+
+    const messages = {
+      en: {
+        greeting: "Hello! Welcome to CMI Hotel 1935. How can I help you today?",
+      },
+      es: {
+        greeting: "¡Hola! Bienvenido a CMI Hotel 1935. ¿Cómo puedo ayudarte hoy?",
+      },
+      hi: {
+        greeting: "नमस्ते! CMI Hotel 1935 में आपका स्वागत है। मैं आपकी कैसे मदद कर सकता हूँ?",
+      }
+    };
+
+    function speak(text) {
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.lang = document.getElementById('lang').value;
+      window.speechSynthesis.speak(msg);
+    }
+
+    function openBooking() {
+      speak("Redirecting you to our booking page.");
+      window.open(bookingLink, '_blank');
+    }
+
+    function changeLanguage(lang) {
+      document.querySelector('#chat-body p').innerText = messages[lang].greeting;
+      speak(messages[lang].greeting);
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = document.getElementById('lang').value;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        if (transcript.includes("book")) {
+          openBooking();
+        } else if (transcript.includes("available")) {
+          speak("Rooms are available most weekdays. Weekends fill quickly — book soon!");
+        } else if (transcript.includes("check-in") || transcript.includes("policy")) {
+          speak("Check-in is 3 PM, check-out is 11 AM. No pets allowed.");
+        } else if (transcript.includes("parking") || transcript.includes("pool")) {
+          speak("Parking is free for one car. Additional cars are $20/day. Pool is open 8 AM to 10 PM.");
+        } else {
+          speak("Let me connect you with someone from our front desk.");
+        }
+      };
+
+      recognition.onerror = function(event) {
+        speak("Sorry, I didn’t catch that. Please try again.");
+      };
+    }
+  </script>
+</body>
+</html>
